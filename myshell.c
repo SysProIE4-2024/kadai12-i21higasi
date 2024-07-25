@@ -68,6 +68,13 @@ void findRedirect(char *args[]) {               // リダイレクトの指示�
 }
 
 void redirect(int fd, char *path, int flag) {   // リダイレクト処理をする
+  close(fd);
+  int nfd = open(path,flag,0644);
+    if(nfd < 0){
+      perror(path);
+      exit(1);
+    }
+
   //
   // externalCom 関数のどこかから呼び出される
   //
@@ -76,6 +83,8 @@ void redirect(int fd, char *path, int flag) {   // リダイレクト処理を�
   // flag : open システムコールに渡すフラグ
   //        入力の場合 O_RDONLY
   //        出力の場合 O_WRONLY|O_TRUNC|O_CREAT
+
+
   //
 }
 
@@ -86,6 +95,13 @@ void externalCom(char *args[]) {                // 外部コマンドを実行�
     exit(1);                                    //     非常事態，親を終了
   }
   if (pid==0) {                                 //   子プロセスなら
+
+    if(ifile != NULL){
+      redirect(0,ifile,O_RDONLY);
+    }else if(ofile != NULL){
+      redirect(1,ofile,O_WRONLY|O_TRUNC|O_CREAT);
+    }
+
     execvp(args[0], args);                      //     コマンドを実行
     perror(args[0]);
     exit(1);
@@ -130,3 +146,46 @@ int main() {
   return 0;
 }
 
+
+/*
+実行例
+% make
+make: Nothing to be done for `all'.
+% ./myshell
+Command: ls
+Makefile        README.md       README.pdf      myshell         myshell.c
+Command: ls > a.txt
+Command: cat a.txt
+Makefile
+README.md
+README.pdf
+a.txt
+myshell
+myshell.c
+Command: touch b.txt
+Command: ls
+Makefile        README.md       README.pdf      a.txt           b.txt           myshell         myshell.c
+Command: ls > b.txt
+Command: cat b.txt
+Makefile
+README.md
+README.pdf
+a.txt
+b.txt
+myshell
+myshell.c
+Command: echo a > a.txt
+Command: cat a.txt
+a
+Command: ls > a.txt
+Command: grep .txt < a.txt
+a.txt
+b.txt
+c.txt
+Command: touch > a.txt
+usage:
+touch [-A [-][[hh]mm]SS] [-acfhm] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file ...
+Command: c.txt < b.txt
+c.txt: No such file or directory
+Command: 
+*/
