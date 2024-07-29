@@ -69,22 +69,11 @@ void findRedirect(char *args[]) {               // リダイレクトの指示�
 
 void redirect(int fd, char *path, int flag) {   // リダイレクト処理をする
   close(fd);
-  int nfd = open(path,flag,0644);
-    if(nfd < 0){
-      perror(path);
-      exit(1);
-    }
 
-  //
-  // externalCom 関数のどこかから呼び出される
-  //
-  // fd   : リダイレクトするファイルディスクリプタ
-  // path : リダイレクト先ファイル
-  // flag : open システムコールに渡すフラグ
-  //        入力の場合 O_RDONLY
-  //        出力の場合 O_WRONLY|O_TRUNC|O_CREAT
-
-
+  if (open(path, flag, 0644) != fd) {
+    fprintf(stderr, "something is wrong\n");
+    exit(1);
+  }
   //
 }
 
@@ -150,23 +139,26 @@ int main() {
 /*
 実行例
 % make
-make: Nothing to be done for `all'.
+cc -D_GNU_SOURCE -Wall -std=c99 -o myshell myshell.c
 % ./myshell
-Command: ls
+Command: ls                           --a.txtがない事を確認
 Makefile        README.md       README.pdf      myshell         myshell.c
-Command: ls > a.txt
-Command: cat a.txt
+Command: echo aaa bbb > a.txt         
+Command: ls                           --a.txtが作られた事を確認
+Makefile        README.md       README.pdf      a.txt           myshell         myshell.c
+Command: cat a.txt                    --a.txtの内容を確認
+aaa bbb
+Command: ls > a.txt                   --a.txtの内容を上書き
+Command: cat a.txt                    --上書きできているか確認
 Makefile
 README.md
 README.pdf
 a.txt
 myshell
 myshell.c
-Command: touch b.txt
-Command: ls
-Makefile        README.md       README.pdf      a.txt           b.txt           myshell         myshell.c
-Command: ls > b.txt
-Command: cat b.txt
+Command: touch b.txt           
+Command: ls > b.txt                   --既に存在しているb.txtに書き込む
+Command: cat b.txt                    --書き込めている事を確認
 Makefile
 README.md
 README.pdf
@@ -174,18 +166,18 @@ a.txt
 b.txt
 myshell
 myshell.c
-Command: echo a > a.txt
-Command: cat a.txt
-a
-Command: ls > a.txt
-Command: grep .txt < a.txt
+Command: grep a.txt < txt　　　　　　　　--エラーチェック
+something is wrong
+Command: grep .txt < b.txt            --リダイレクト入力を用いてb.txtの中の.txtを含む行を表示
 a.txt
 b.txt
-c.txt
-Command: touch > a.txt
-usage:
-touch [-A [-][[hh]mm]SS] [-acfhm] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file ...
-Command: c.txt < b.txt
-c.txt: No such file or directory
+Command: grep .txt < c.txt            --存在しないファイルでのエラー
+something is wrong
+Command: mkdir dir
+Command: cat < dir                    --ディレクトリから入力しようとした時
+cat: stdin: Is a directory
+Command: ls > dir　　　　　　　　　　　　 --ディレクトリにリダイレクト出力しようとした時
+something is wrong
 Command: 
 */
+
