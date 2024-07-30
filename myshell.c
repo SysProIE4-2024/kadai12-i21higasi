@@ -87,7 +87,8 @@ void externalCom(char *args[]) {                // 外部コマンドを実行�
 
     if(ifile != NULL){
       redirect(0,ifile,O_RDONLY);
-    }else if(ofile != NULL){
+    }
+    if(ofile != NULL){
       redirect(1,ofile,O_WRONLY|O_TRUNC|O_CREAT);
     }
 
@@ -136,6 +137,7 @@ int main() {
 }
 
 
+
 /*
 実行例
 % make
@@ -178,6 +180,11 @@ Command: cat < dir                    --ディレクトリから入力しよう�
 cat: stdin: Is a directory
 Command: ls > dir　　　　　　　　　　　　 --ディレクトリにリダイレクト出力しようとした時
 something is wrong
+Command: echo ccc > c.txt
+Command: cat < c.txt > d.txt
+Command: cat c.txt 
+ccc
+Command: cat d.txt 
+ccc
 Command: 
 */
-
